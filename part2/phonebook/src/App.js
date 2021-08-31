@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
-import Filter from './components/Filter'
-import PersonForm from './components/PersonForm'
-import Persons from './components/Persons'
-import personService from "./services/personService";
-import Notification from "./components/Notification";
-import Error from "./components/Error";
+import React, { useState, useEffect } from "react"
+import Filter from "./components/Filter"
+import PersonForm from "./components/PersonForm"
+import Persons from "./components/Persons"
+import personService from "./services/personService"
+import Notification from "./components/Notification"
+import Error from "./components/Error"
 
 const App = () => {
-	const [persons, setPersons] = useState([]);
-    const [newName, setNewName] = useState("");
+    const [persons, setPersons] = useState([])
+    const [newName, setNewName] = useState("")
     const [newNumber, setNewNumber] = useState("")
     const [filter, setFilter] = useState("")
     const [notification, setNotification] = useState(null)
@@ -17,9 +17,9 @@ const App = () => {
     // Initializing persons state
     useEffect(() => {
         personService.getAll()
-        .then(allPersons =>{
-            setPersons(allPersons)
-        })
+            .then(allPersons =>{
+                setPersons(allPersons)
+            })
 
     }, [])
 
@@ -28,7 +28,7 @@ const App = () => {
             // After 3 seconds set the error and notifications to null
             setError(null)
             setNotification(null)
-        }, 3000)
+        }, 5000)
 
         return () => {
             clearTimeout(timeId)
@@ -37,15 +37,15 @@ const App = () => {
 
 
     // Function for setting newName state
-	const handleNameInput = (event) => {
-		setNewName(event.target.value);
-	};
+    const handleNameInput = (event) => {
+        setNewName(event.target.value)
+    }
 
     // Function for setting number state
     const handleNumberInput = (event) => {
         // Only allows numbers and hyphens to be inputted
-        const re = /^[0-9-\b]+$/;
-        if (event.target.value === '' || re.test(event.target.value)) {
+        const re = /^[0-9-\b]+$/
+        if (event.target.value === "" || re.test(event.target.value)) {
             setNewNumber(event.target.value)
         }
     }
@@ -56,14 +56,14 @@ const App = () => {
     }
 
     // Function for handling form submit
-	const handleSubmit = (event) => {
-		event.preventDefault();
+    const handleSubmit = (event) => {
+        event.preventDefault()
 
         // Check for if the person with the same name already exists
         const found = persons.find(person => {
             if (person.name.toLowerCase() === newName.toLowerCase()) {
                 return true
-            } 
+            }
         })
 
         // If the person's found, update their number if the user confirms.
@@ -72,16 +72,17 @@ const App = () => {
                 const person = persons.find(person => person.name.toLowerCase() === newName.toLowerCase())
                 const updatedPerson = {...person, number: newNumber}
                 personService.updatePerson(updatedPerson)
-                .then(returnedPerson => {
-                    setPersons(persons.map(person => person.id !== returnedPerson.id ? person : returnedPerson))
-                    setNewName("")
-                    setNewNumber("")
-                    setNotification(`Updated ${returnedPerson.name}'s number`)
+                    .then(returnedPerson => {
+                        setPersons(persons.map(person => person.id !== returnedPerson.id ? person : returnedPerson))
+                        setNewName("")
+                        setNewNumber("")
+                        setNotification(`Updated ${returnedPerson.name}'s number`)
 
-                })
-                .catch(err => {
-                    setError(`${updatedPerson.name} has been removed from the server`)
-                })
+                    })
+                    .catch(error => {
+                        setError(error.response.data.error)
+                    // setError(`${updatedPerson.name} has been removed from the server`)
+                    })
             }
         } else {
             const newPerson = { 
@@ -90,42 +91,48 @@ const App = () => {
             }
 
             personService.addPerson(newPerson)
-            .then(returnedPerson => {
+                .then(returnedPerson => {
                 // Add the person and reset some state
-                setPersons(persons.concat(returnedPerson));
-                setNewName("")
-                setNewNumber("")
-                setNotification(`Added ${newName} to phonebook`)
-            })
+                    setPersons(persons.concat(returnedPerson))
+                    setNewName("")
+                    setNewNumber("")
+                    setNotification(`Added ${newName} to phonebook`)
+                })
+                .catch(error => {
+                    setError(error.response.data.error)
+                })
         }
-	};
+    }
 
     const deletePerson = (person) => {
         const confirm = window.confirm(`Delete ${person.name}?`)
         if (confirm) {
             personService.deletePerson(person.id)
-            .then(response => {
-                personService.getAll()
-                .then(allPersons =>{
-                    setPersons(allPersons)
-                })
+                .then(response => {
+                    personService.getAll()
+                        .then(allPersons =>{
+                            setPersons(allPersons)
+                        })
                 
-            })
+                })
+                .catch(error => {
+                    setError(error.response.data.error)
+                })
         }
     }
 
 
     // Holds array of filtered persons to show, if no filter is inputted, then the whole array is shown
-    const personsToShow = filter === '' ? persons : persons.filter(person => {
+    const personsToShow = filter === "" ? persons : persons.filter(person => {
         if (person.name.toLowerCase().startsWith(filter.toLowerCase())) {
             return person
         }
     })
 
 
-	return (
-		<div>
-			<h2>Phonebook</h2>
+    return (
+        <div>
+            <h2>Phonebook</h2>
 
             <Notification message={notification} />
             <Error message={error} />
@@ -135,15 +142,15 @@ const App = () => {
 
             <h2>Add a new person</h2>
 
-			<PersonForm newName={newName} handleNameInput={handleNameInput} newNumber={newNumber} handleNumberInput={handleNumberInput} handleSubmit={handleSubmit} />
+            <PersonForm newName={newName} handleNameInput={handleNameInput} newNumber={newNumber} handleNumberInput={handleNumberInput} handleSubmit={handleSubmit} />
 
-			<h2>Numbers</h2>
+            <h2>Numbers</h2>
 
             <Persons personsToShow={personsToShow} deletePerson={deletePerson} />
 			
 
-		</div>
-	);
-};
+        </div>
+    )
+}
 
-export default App;
+export default App

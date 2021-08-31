@@ -1,6 +1,3 @@
-import axios from "axios"
-import personService from "../services/personService"
-
 const Person = ({ person, deletePerson }) => {
 
     return (
